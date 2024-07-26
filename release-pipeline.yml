@@ -591,11 +591,26 @@ stages:
           - script: |
               cp NOTICE.txt $(darwin_m1_arm_dir)
               cp $(root_dir)/azcopy  $(darwin_m1_arm_dir)
-              echo "M1_CNT_SAS_URL: ${M1_CNT_SAS_URL}"
-              if [ $(Publish_To_M1_Container) = "True" ]; then
-                AZCOPY_AUTO_LOGIN_TYPE=AzCLI $(root_dir)/azcopy copy "$(root_dir)/azcopy" "${M1_CNT_SAS_URL}"
-              fi
             displayName: 'Copy required files for packaging'
+
+          - task: Bash@3
+            displayName: 'Install Azure CLI'
+            inputs:
+              targetType: 'inline'
+              script: |
+                curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+          - task: AzureCLI@2
+            displayName: 'Azure CLI'
+            inputs:
+              azureSubscription: 'ESRP KeyVault identity'
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                echo "M1_CNT_SAS_URL: ${M1_CNT_SAS_URL}"
+                if [ $(Publish_To_M1_Container) = "True" ]; then
+                  AZCOPY_AUTO_LOGIN_TYPE=AzCLI $(root_dir)/azcopy cp "$(root_dir)/azcopy" "${M1_CNT_SAS_URL}"
+                fi
 
           - task: ArchiveFiles@2
             displayName: 'Archive MacOS M1 ARM64 Build (must happen before signing/notarization)'
