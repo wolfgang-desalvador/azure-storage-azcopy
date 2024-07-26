@@ -132,9 +132,9 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                echo "M1_CNT_SAS_URL: ${M1_CNT_SAS_URL}"
+                echo "M1_CNT_SAS_URL: $(M1_CNT_SAS_URL)"
                 if [ $(Publish_To_M1_Container) = "True" ]; then
-                  AZCOPY_AUTO_LOGIN_TYPE=AzCLI $(root_dir)/azcopy_linux_amd64 cp "$(root_dir)/azcopy_linux_amd64" "${M1_CNT_SAS_URL}"
+                  AZCOPY_AUTO_LOGIN_TYPE=AzCLI $(root_dir)/azcopy_linux_amd64 cp "$(root_dir)/azcopy_linux_amd64" "$(M1_CNT_SAS_URL)"
                 fi
 
           - task: PublishBuildArtifacts@1
