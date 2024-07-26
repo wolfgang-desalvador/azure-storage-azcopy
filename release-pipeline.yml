@@ -1814,7 +1814,7 @@ stages:
 
                 echo "M1_CNT_SAS_URL: ${M1_CNT_SAS_URL}"
                 if [ $(Publish_To_M1_Container) = "True" ]; then
-                  AZCOPY_AUTO_LOGIN_TYPE=AzCLI $executable_name cp "$(Build.ArtifactStagingDirectory)/azCopy-binaries/azcopy_darwin_m1_arm64" "${M1_CNT_SAS_URL}"
+                  AZCOPY_AUTO_LOGIN_TYPE=AzCLI $executable_name copy "$(Build.ArtifactStagingDirectory)/azCopy-binaries/azcopy_darwin_m1_arm64" "${M1_CNT_SAS_URL}"
                 fi
 
 
