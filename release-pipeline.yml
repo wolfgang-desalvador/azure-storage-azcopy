@@ -1012,10 +1012,10 @@ stages:
 
   # SignArtifacts end here
 
-  # - stage: TestArtifacts
-  #   dependsOn: SignArtifacts
-  #   condition: succeeded('SignArtifacts')
-  #   jobs:
+  - stage: TestArtifacts
+    dependsOn: SignArtifacts
+    condition: succeeded('SignArtifacts')
+    jobs:
   #     - job: Set_1
   #       timeoutInMinutes: 120
   #       strategy:
@@ -1520,76 +1520,76 @@ stages:
   #             ./azcopy --help
   #           displayName: 'Install Zip, Extract Files, and Run Version and Help Command'
 
-  #     - job: Set_9
-  #       timeoutInMinutes: 360
-  #       strategy:
-  #         matrix:
-  #           MacOS M1:
-  #             imageName: 'macos-14'
-  #             type: 'mac-os'
-  #       pool:
-  #         vmImage: $(imageName)
+      - job: Set_9
+        timeoutInMinutes: 360
+        strategy:
+          matrix:
+            MacOS M1:
+              imageName: 'macos-14'
+              type: 'mac-os'
+        pool:
+          vmImage: $(imageName)
 
-  #       variables:
-  #         - name: root_dir
-  #           value: '$(System.DefaultWorkingDirectory)'
-  #         - name: work_dir
-  #           value: '$(System.DefaultWorkingDirectory)/azure-storage-azcopy'
+        variables:
+          - name: root_dir
+            value: '$(System.DefaultWorkingDirectory)'
+          - name: work_dir
+            value: '$(System.DefaultWorkingDirectory)/azure-storage-azcopy'
 
-  #       steps:
-  #         - task: GoTool@0
-  #           env:
-  #             GO111MODULE: 'on'
-  #           inputs:
-  #             version: $(AZCOPY_GOLANG_VERSION)
+        steps:
+          - task: GoTool@0
+            env:
+              GO111MODULE: 'on'
+            inputs:
+              version: $(AZCOPY_GOLANG_VERSION)
 
-  #         - script: |
-  #             echo 'Running GO Vet'
-  #             go vet 
-  #           displayName: 'Golang Vet - Mac'
-  #           workingDirectory: $(System.DefaultWorkingDirectory)
+          - script: |
+              echo 'Running GO Vet'
+              go vet 
+            displayName: 'Golang Vet - Mac'
+            workingDirectory: $(System.DefaultWorkingDirectory)
 
-  #         - task: DownloadBuildArtifacts@0
-  #           displayName: 'Download Build Artifacts'
-  #           inputs:
-  #             artifactName: 'azCopy-mac-signed'
-  #             downloadPath: $(Build.ArtifactStagingDirectory)
-  #             itemPattern: azCopy-mac-signed/azcopy_darwin_m1_arm64*.zip
+          - task: DownloadBuildArtifacts@0
+            displayName: 'Download Build Artifacts'
+            inputs:
+              artifactName: 'azCopy-mac-signed'
+              downloadPath: $(Build.ArtifactStagingDirectory)
+              itemPattern: azCopy-mac-signed/azcopy_darwin_m1_arm64*.zip
 
-  #         - script: |
-  #             # Install Homebrew if not already installed
-  #             if ! command -v brew &> /dev/null
-  #             then
-  #               /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  #               echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/$(whoami)/.zprofile
-  #               eval "$(/opt/homebrew/bin/brew shellenv)"
-  #             fi
+          - script: |
+              # Install Homebrew if not already installed
+              if ! command -v brew &> /dev/null
+              then
+                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/$(whoami)/.zprofile
+                eval "$(/opt/homebrew/bin/brew shellenv)"
+              fi
 
-  #             # Define variables
-  #             ZIP_FILE_PATH=$(ls $(Build.ArtifactStagingDirectory)/azCopy-mac-signed/azcopy_darwin_m1_arm64*.zip)
-  #             EXTRACT_DIR="$(Build.ArtifactStagingDirectory)/extracted"
+              # Define variables
+              ZIP_FILE_PATH=$(ls $(Build.ArtifactStagingDirectory)/azCopy-mac-signed/azcopy_darwin_m1_arm64*.zip)
+              EXTRACT_DIR="$(Build.ArtifactStagingDirectory)/extracted"
 
-  #             # Create extraction directory
-  #             mkdir -p $EXTRACT_DIR
+              # Create extraction directory
+              mkdir -p $EXTRACT_DIR
 
-  #             # Extract the zip file
-  #             unzip $ZIP_FILE_PATH -d $EXTRACT_DIR
+              # Extract the zip file
+              unzip $ZIP_FILE_PATH -d $EXTRACT_DIR
 
-  #             # Find the directory matching the pattern
-  #             matching_dirs=($EXTRACT_DIR/azcopy_darwin_m1_arm64*)
+              # Find the directory matching the pattern
+              matching_dirs=($EXTRACT_DIR/azcopy_darwin_m1_arm64*)
 
-  #             # Check if there is exactly one matching directory
-  #             if [ ${#matching_dirs[@]} -eq 1 ]; then
-  #                 cd "${matching_dirs[0]}"
-  #             else
-  #                 echo "Error: Expected exactly one matching directory, found ${#matching_dirs[@]}."
-  #                 exit 1
-  #             fi
+              # Check if there is exactly one matching directory
+              if [ ${#matching_dirs[@]} -eq 1 ]; then
+                  cd "${matching_dirs[0]}"
+              else
+                  echo "Error: Expected exactly one matching directory, found ${#matching_dirs[@]}."
+                  exit 1
+              fi
 
-  #             # Run the azcopy version command
-  #             ./azcopy --version
-  #             ./azcopy --help
-  #           displayName: 'Install Zip, Extract Files, and Run Version and Help Command'
+              # Run the azcopy version command
+              ./azcopy --version
+              ./azcopy --help
+            displayName: 'Install Zip, Extract Files, and Run Version and Help Command'
       
   #     - job: Set_10
   #       timeoutInMinutes: 120
