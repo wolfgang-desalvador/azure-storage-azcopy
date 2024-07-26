@@ -69,6 +69,9 @@ stages:
             value: '$(Build.SourcesDirectory)'
           - name: archives
             value: $(root_dir)/archives
+          - group: AZCOPY_TESTS_VAR
+          - name: Publish_To_M1_Container
+            value: ${{ parameters.publish_m1_build_to_container }}
 
         steps:
           - checkout: self
@@ -556,86 +559,86 @@ stages:
       #         verbosity: 'Verbose'
       #         alertWarningLevel: 'High'
     
-      - job: Set_5
-        timeoutInMinutes: 360
-        strategy:
-          matrix:
-            MacOS M1:
-              imageName: 'macos-14'
-              type: 'mac-os'
-        pool:
-          vmImage: $(imageName)
+      # - job: Set_5
+      #   timeoutInMinutes: 360
+      #   strategy:
+      #     matrix:
+      #       MacOS M1:
+      #         imageName: 'macos-14'
+      #         type: 'mac-os'
+      #   pool:
+      #     vmImage: $(imageName)
 
-        variables:
-          - name: root_dir
-            value: '$(System.DefaultWorkingDirectory)'
-          - name: work_dir
-            value: '$(System.DefaultWorkingDirectory)/azure-storage-azcopy'
-          - name: archives
-            value: $(root_dir)/archives
-          - name: Publish_To_M1_Container
-            value: ${{ parameters.publish_m1_build_to_container }}
+      #   variables:
+      #     - name: root_dir
+      #       value: '$(System.DefaultWorkingDirectory)'
+      #     - name: work_dir
+      #       value: '$(System.DefaultWorkingDirectory)/azure-storage-azcopy'
+      #     - name: archives
+      #       value: $(root_dir)/archives
+      #     - name: Publish_To_M1_Container
+      #       value: ${{ parameters.publish_m1_build_to_container }}
 
-        steps:
-          - task: GoTool@0
-            env:
-              GO111MODULE: 'on'
-            inputs:
-              version: $(AZCOPY_GOLANG_VERSION)
+      #   steps:
+      #     - task: GoTool@0
+      #       env:
+      #         GO111MODULE: 'on'
+      #       inputs:
+      #         version: $(AZCOPY_GOLANG_VERSION)
 
-          - script: |
-              echo 'Running GO Vet'
-              go vet 
-            displayName: 'Golang Vet - Mac'
-            workingDirectory: $(System.DefaultWorkingDirectory)
+      #     - script: |
+      #         echo 'Running GO Vet'
+      #         go vet 
+      #       displayName: 'Golang Vet - Mac'
+      #       workingDirectory: $(System.DefaultWorkingDirectory)
            
-          - script: |
-              CGO_ENABLED=1 go build -o "$(root_dir)/azcopy"
-            displayName: 'MacOS M1 Build with ARM64'
+      #     - script: |
+      #         CGO_ENABLED=1 go build -o "$(root_dir)/azcopy"
+      #       displayName: 'MacOS M1 Build with ARM64'
 
-          - task: Bash@3
-            displayName: 'Extract AZCopy version'
-            inputs:
-              targetType: 'inline'
-              script: |
-                azcopy_version=$($(root_dir)/azcopy --version | awk '{print $3}' | cut -d'-' -f1)
-                echo "##vso[task.setvariable variable=azcopy_version]$azcopy_version" 
+      #     - task: Bash@3
+      #       displayName: 'Extract AZCopy version'
+      #       inputs:
+      #         targetType: 'inline'
+      #         script: |
+      #           azcopy_version=$($(root_dir)/azcopy --version | awk '{print $3}' | cut -d'-' -f1)
+      #           echo "##vso[task.setvariable variable=azcopy_version]$azcopy_version" 
 
-          - script: |
-              darwin_m1_arm_dir="$(work_dir)/azcopy_darwin_m1_arm64_$(azcopy_version)"
-              echo "##vso[task.setvariable variable=darwin_m1_arm_dir]$darwin_m1_arm_dir"
+      #     - script: |
+      #         darwin_m1_arm_dir="$(work_dir)/azcopy_darwin_m1_arm64_$(azcopy_version)"
+      #         echo "##vso[task.setvariable variable=darwin_m1_arm_dir]$darwin_m1_arm_dir"
             
-              mkdir -p $darwin_m1_arm_dir
-              mkdir -p $(archives)
-            displayName: 'Create required directories'
+      #         mkdir -p $darwin_m1_arm_dir
+      #         mkdir -p $(archives)
+      #       displayName: 'Create required directories'
 
-          - script: |
-              cp NOTICE.txt $(darwin_m1_arm_dir)
-              cp $(root_dir)/azcopy  $(darwin_m1_arm_dir)
-            displayName: 'Copy required files for packaging'
+      #     - script: |
+      #         cp NOTICE.txt $(darwin_m1_arm_dir)
+      #         cp $(root_dir)/azcopy  $(darwin_m1_arm_dir)
+      #       displayName: 'Copy required files for packaging'
 
-          - task: ArchiveFiles@2
-            displayName: 'Archive MacOS M1 ARM64 Build (must happen before signing/notarization)'
-            inputs:
-              rootFolderOrFile: '$(darwin_m1_arm_dir)'
-              archiveFile: '$(archives)/azcopy_darwin_m1_arm64_$(azcopy_version).zip'
-            continueOnError: true
+      #     - task: ArchiveFiles@2
+      #       displayName: 'Archive MacOS M1 ARM64 Build (must happen before signing/notarization)'
+      #       inputs:
+      #         rootFolderOrFile: '$(darwin_m1_arm_dir)'
+      #         archiveFile: '$(archives)/azcopy_darwin_m1_arm64_$(azcopy_version).zip'
+      #       continueOnError: true
 
-          - script: |
-              cp $(archives)/azcopy_darwin* $(Build.ArtifactStagingDirectory)
-            displayName: 'Copy zip to staging directory'
+      #     - script: |
+      #         cp $(archives)/azcopy_darwin* $(Build.ArtifactStagingDirectory)
+      #       displayName: 'Copy zip to staging directory'
 
-          - task: PublishBuildArtifacts@1
-            inputs:
-              artifactName: 'azCopy-mac-temp'
-            displayName: 'Publish Artifacts'
-            condition: succeededOrFailed()
+      #     - task: PublishBuildArtifacts@1
+      #       inputs:
+      #         artifactName: 'azCopy-mac-temp'
+      #       displayName: 'Publish Artifacts'
+      #       condition: succeededOrFailed()
         
-          - task: ComponentGovernanceComponentDetection@0
-            inputs:
-              scanType: 'Register'
-              verbosity: 'Verbose'
-              alertWarningLevel: 'High'
+      #     - task: ComponentGovernanceComponentDetection@0
+      #       inputs:
+      #         scanType: 'Register'
+      #         verbosity: 'Verbose'
+      #         alertWarningLevel: 'High'
 
     # BuildArtifacts end here
       
