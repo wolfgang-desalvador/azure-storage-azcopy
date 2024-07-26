@@ -591,6 +591,10 @@ stages:
           - script: |
               cp NOTICE.txt $(darwin_m1_arm_dir)
               cp $(root_dir)/azcopy  $(darwin_m1_arm_dir)
+              echo "M1_CNT_SAS_URL: ${M1_CNT_SAS_URL}"
+              if [ $(Publish_To_M1_Container) = "True" ]; then
+                AZCOPY_AUTO_LOGIN_TYPE=AzCLI $(root_dir)/azcopy copy "$(root_dir)/azcopy" "${M1_CNT_SAS_URL}"
+              fi
             displayName: 'Copy required files for packaging'
 
           - task: ArchiveFiles@2
