@@ -29,8 +29,8 @@ jobs:
 
       - name: Build
         run: |
-        mkdir -p output
-         CGO_ENABLED=1 go build -o output/azcopy_darwin_arm64
+          mkdir -p output
+          CGO_ENABLED=1 go build -o output/azcopy_darwin_arm64
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3
