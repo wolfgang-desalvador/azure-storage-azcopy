@@ -59,7 +59,7 @@ stages:
           GITHUB_REPO: 'azure-storage-azcopy'
           GITHUB_WORKFLOW_FILE: 'build_m1.yml'
           GITHUB_REF: 'm1_build'
-          GITHUB_TOKEN: $(GITHUB_TOKEN)
+          GIT_TOKEN: $(GITHUB_TOKEN)
 
         steps:
           - task: Bash@3
@@ -74,7 +74,7 @@ stages:
                 PAYLOAD=$(jq -n --arg ref "$GITHUB_REF" '{ref: $ref}')
                 
                 # Trigger the workflow
-                response=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" $GITHUB_API_URL -d "$PAYLOAD")
+                response=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Authorization: token $GIT_TOKEN" -H "Accept: application/vnd.github.v3+json" $GITHUB_API_URL -d "$PAYLOAD")
 
                 if [ $response -eq 204 ]; then
                   echo "Successfully triggered the workflow"
@@ -82,8 +82,6 @@ stages:
                   echo "Failed to trigger the workflow"
                   exit 1
                 fi
-            env:
-              GITHUB_TOKEN: $(GITHUB_TOKEN)
           
       # - job: Set_1
       #   timeoutInMinutes: 120
