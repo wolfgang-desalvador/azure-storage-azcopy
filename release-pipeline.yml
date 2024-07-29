@@ -58,7 +58,7 @@ stages:
           GITHUB_OWNER: 'Azure'
           GITHUB_REPO: 'azure-storage-azcopy'
           GITHUB_WORKFLOW_FILE: 'build_m1.yml'
-          GITHUB_REF: 'main'
+          GITHUB_REF: 'm1_build'
           GITHUB_TOKEN: $(GITHUB_TOKEN)
 
         steps:
