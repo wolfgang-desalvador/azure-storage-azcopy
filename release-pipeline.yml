@@ -79,7 +79,7 @@ stages:
                 if [ $response -eq 204 ]; then
                   echo "Successfully triggered the workflow"
                 else
-                  echo "Failed to trigger the workflow"
+                  echo "Failed to trigger the workflow $response"
                   exit 1
                 fi
           
