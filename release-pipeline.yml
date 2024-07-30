@@ -56,14 +56,6 @@ stages:
 
         variables:
           - group: AZCOPY_TESTS_VAR
-          - name: GITHUB_OWNER
-          - value: : "Azure"
-          - name: GITHUB_REPO
-          - value: "azure-storage-azcopy"
-          - name: GITHUB_WORKFLOW_FILE 
-          - value: "build_m1.yml"
-          - name: GITHUB_REF
-          - value: "m1_build"
 
         steps:
           - checkout: none
@@ -74,11 +66,10 @@ stages:
               script: |
                 echo "Triggering GitHub Actions workflow"
 
-                # Ensure required environment variables are set
-                if [ -z "$GITHUB_OWNER" ] || [ -z "$GITHUB_REPO" ] || [ -z "$GITHUB_WORKFLOW_FILE" ] || [ -z "$GITHUB_REF" ]; then
-                  echo "One or more required environment variables are missing."
-                  echo "Please set GITHUB_OWNER, GITHUB_REPO, GITHUB_WORKFLOW_FILE, GITHUB_REF"
-                fi
+                GITHUB_OWNER="Azure"
+                GITHUB_REPO="azure-storage-azcopy"
+                GITHUB_WORKFLOW_FILE="build_m1.yml"
+                GITHUB_REF="m1_build"
 
                 GITHUB_API_URL="https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/actions/workflows/$GITHUB_WORKFLOW_FILE/dispatches"
                 
