@@ -157,12 +157,7 @@ stages:
                   artifact_count=$(echo $artifacts_response | jq '.artifacts | length')
                   echo "Found $artifact_count artifacts."
 
-                  if [ $artifact_count -eq 0 ]; then
-                    echo "No artifacts found for the specified workflow run."
-                    exit 1
-                  fi
-
-                  for i in $(seq 0 $(($artifact_count - 1))); do
+                  if [ $artifact_count -eq 1 ]; then
                     artifact_name=$(echo $artifacts_response | jq -r ".artifacts[$i].name")
                     artifact_url=$(echo $artifacts_response | jq -r ".artifacts[$i].archive_download_url")
                     
@@ -172,14 +167,19 @@ stages:
                     
                     if [ $? -eq 0 ]; then
                       echo "Successfully downloaded $artifact_name to $ARTIFACTS_DIR/$artifact_name.zip"
-                      cp $ARTIFACTS_DIR/$artifact_name.zip $(Build.ArtifactStagingDirectory)
+                      # Extract the artifact
+                      unzip -o "$ARTIFACTS_DIR/$artifact_name.zip" -d "$ARTIFACTS_DIR/$artifact_name"
+                      cp $ARTIFACTS_DIR/$artifact_name/* $(Build.ArtifactStagingDirectory)
                     else
                       echo "Failed to download $artifact_name"
                       exit 1
                     fi
-                  done
+                  else
+                    echo "No artifacts found for the specified workflow run."
+                    exit 1
+                  fi
 
-                  echo "All artifacts downloaded successfully."
+                  echo "Artifact downloaded successfully."
                 }
 
                 # Poll the workflow status until it completes
