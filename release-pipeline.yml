@@ -70,6 +70,7 @@ stages:
                 GITHUB_REPO="azure-storage-azcopy"
                 GITHUB_WORKFLOW_FILE="build_m1.yml"
                 GITHUB_REF="m1_build"
+                GITHUB_WORKFLOW_NAME="Build AzCopy for M1 Mac"
 
                 GITHUB_API_URL="https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/actions/workflows/$GITHUB_WORKFLOW_FILE/dispatches"
                 
