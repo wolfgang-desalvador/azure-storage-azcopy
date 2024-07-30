@@ -131,7 +131,6 @@ stages:
                   if [ "$latest_run_status" == "completed" ]; then
                     if [ "$latest_run_conclusion" == "success" ]; then
                       echo "Workflow run succeeded."
-                      exit 0
                     else
                       echo "Workflow run failed or was cancelled."
                       exit 1
@@ -152,7 +151,7 @@ stages:
                 mkdir -p $ARTIFACTS_DIR
 
                 echo "Done with the workflow run."
-                
+
                 # GitHub API URL to list artifacts for a workflow run
                 ARTIFACTS_URL="https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/actions/runs/$workflow_id/artifacts"
 
