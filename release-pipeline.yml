@@ -163,7 +163,7 @@ stages:
                     
                     echo "Downloading artifact: $artifact_name"
                     
-                    curl -L -o "$ARTIFACTS_DIR/$artifact_name.zip" -H "Authorization: Bearer $GIT_TOKEN" "$artifact_url"
+                    curl -L -o "$ARTIFACTS_DIR/$artifact_name" -H "Authorization: Bearer $GIT_TOKEN" "$artifact_url"
                     
                     if [ $? -eq 0 ]; then
                       echo "Successfully downloaded $artifact_name to $ARTIFACTS_DIR/$artifact_name.zip"
