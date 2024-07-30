@@ -87,7 +87,6 @@ stages:
                   echo "Failed to trigger the workflow $response"
                   exit 1
                 fi
-          
       # - job: Set_1
       #   timeoutInMinutes: 120
       #   strategy:
