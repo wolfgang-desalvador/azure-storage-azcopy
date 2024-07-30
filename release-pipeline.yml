@@ -106,7 +106,7 @@ stages:
             displayName: 'Copy required files for packaging'
 
           - task: ArchiveFiles@2
-            displayName: 'Archive MacOS AMD64 Build (must happen before signing/notarization)'
+            displayName: 'Archive MacOS M1 ARM64 Build (must happen before signing/notarization)'
             inputs:
               rootFolderOrFile: '$(darwin_arm64_m1_dir)'
               archiveFile: '$(archives)/azcopy_darwin_m1_arm64_$(azcopy_version).zip'
