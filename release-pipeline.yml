@@ -131,6 +131,8 @@ stages:
                   if [ "$latest_run_status" == "completed" ]; then
                     if [ "$latest_run_conclusion" == "success" ]; then
                       echo "Workflow run succeeded."
+                      download_artifacts $latest_run_id
+                      exit 0
                     else
                       echo "Workflow run failed or was cancelled."
                       exit 1
@@ -146,44 +148,44 @@ stages:
                 done
 
 
-                # Directory to save the downloaded artifacts
-                ARTIFACTS_DIR="downloaded_artifacts"
-                mkdir -p $ARTIFACTS_DIR
+                # Function to download the artifacts from the specified workflow run
+                # Function to download artifacts
+                download_artifacts() {
+                  local run_id=$1
+                  ARTIFACTS_URL="https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/actions/runs/$run_id/artifacts"
 
-                echo "Done with the workflow run."
+                  # Create directory for artifacts
+                  mkdir -p $ARTIFACTS_DIR
 
-                # GitHub API URL to list artifacts for a workflow run
-                ARTIFACTS_URL="https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/actions/runs/$workflow_id/artifacts"
+                  # Retrieve the list of artifacts
+                  artifacts_response=$(curl -s -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $(GITHUB_TOKEN)" "$ARTIFACTS_URL")
 
-                # Retrieve the list of artifacts
-                artifacts_response=$(curl -s -H "Accept: application/vnd.github.v3+json" -H "Authorization: Bearer $(GITHUB_TOKEN)" "$ARTIFACTS_URL")
+                  # Extract the artifact download URLs
+                  artifact_count=$(echo $artifacts_response | jq '.artifacts | length')
+                  echo "Found $artifact_count artifacts."
 
-                # Extract the artifact download URLs
-                artifact_count=$(echo $artifacts_response | jq '.artifacts | length')
-                echo "Found $artifact_count artifacts."
-
-                if [ $artifact_count -eq 0 ]; then
-                  echo "No artifacts found for the specified workflow run."
-                  exit 1
-                fi
-
-                for i in $(seq 0 $(($artifact_count - 1))); do
-                  artifact_name=$(echo $artifacts_response | jq -r ".artifacts[$i].name")
-                  artifact_url=$(echo $artifacts_response | jq -r ".artifacts[$i].archive_download_url")
-                  
-                  echo "Downloading artifact: $artifact_name"
-                  
-                  curl -L -o "$ARTIFACTS_DIR/$artifact_name.zip" -H "Authorization: Bearer $GIT_TOKEN" "$artifact_url"
-                  
-                  if [ $? -eq 0 ]; then
-                    echo "Successfully downloaded $artifact_name to $ARTIFACTS_DIR/$artifact_name.zip"
-                  else
-                    echo "Failed to download $artifact_name"
+                  if [ $artifact_count -eq 0 ]; then
+                    echo "No artifacts found for the specified workflow run."
                     exit 1
                   fi
-                done
 
-                cp $ARTIFACTS_DIR/$artifact_name.zip $(Build.ArtifactStagingDirectory)
+                  for i in $(seq 0 $(($artifact_count - 1))); do
+                    artifact_name=$(echo $artifacts_response | jq -r ".artifacts[$i].name")
+                    artifact_url=$(echo $artifacts_response | jq -r ".artifacts[$i].archive_download_url")
+                    
+                    echo "Downloading artifact: $artifact_name"
+                    
+                    curl -L -o "$ARTIFACTS_DIR/$artifact_name.zip" -H "Authorization: Bearer $GIT_TOKEN" "$artifact_url"
+                    
+                    if [ $? -eq 0 ]; then
+                      echo "Successfully downloaded $artifact_name to $ARTIFACTS_DIR/$artifact_name.zip"
+                      cp $ARTIFACTS_DIR/$artifact_name.zip $(Build.ArtifactStagingDirectory)
+                    else
+                      echo "Failed to download $artifact_name"
+                      exit 1
+                    fi
+                  done
+
             displayName: 'Trigger GitHub Actions workflow'
 
           - task: PublishBuildArtifacts@1
