@@ -168,7 +168,9 @@ stages:
                     if [ $? -eq 0 ]; then
                       echo "Successfully downloaded $artifact_name to $ARTIFACTS_DIR/$artifact_name.zip"
                       # Extract the artifact
-                      unzip -o $ARTIFACTS_DIR/*.zip -d "$ARTIFACTS_DIR/$artifact_name"
+                      mkdir -p $ARTIFACTS_DIR/unzipped_artifacts
+                      ls -ltR $ARTIFACTS_DIR/
+                      unzip -o $ARTIFACTS_DIR/*.zip -d "$ARTIFACTS_DIR/unzipped_artifacts"
                       cp $ARTIFACTS_DIR/$artifact_name/* $(Build.ArtifactStagingDirectory)
                     else
                       echo "Failed to download $artifact_name"
