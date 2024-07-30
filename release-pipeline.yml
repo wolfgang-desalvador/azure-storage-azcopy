@@ -57,13 +57,13 @@ stages:
         variables:
           - group: AZCOPY_TESTS_VAR
           - name: GITHUB_OWNER
-          - value: : 'Azure'
+          - value: : "Azure"
           - name: GITHUB_REPO
-          - value: 'azure-storage-azcopy'
+          - value: "azure-storage-azcopy"
           - name: GITHUB_WORKFLOW_FILE 
-          - value: 'build_m1.yml'
+          - value: "build_m1.yml"
           - name: GITHUB_REF
-          - value: 'm1_build'
+          - value: "m1_build"
 
         steps:
           - checkout: none
