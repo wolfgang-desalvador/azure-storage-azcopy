@@ -61,6 +61,8 @@ stages:
 
         variables:
           - group: AZCOPY_TESTS_VAR
+          - name: root_dir
+            value: '$(System.DefaultWorkingDirectory)'
           - name: work_dir
             value: '$(Build.SourcesDirectory)'
           - name: archives
