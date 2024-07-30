@@ -67,6 +67,8 @@ stages:
             value: '$(Build.SourcesDirectory)'
           - name: archives
             value: $(root_dir)/archives
+          - name: Publish_To_M1_Container
+            value: ${{ parameters.publish_to_m1_container }}
 
         steps:
           - template: setup/trigger_m1_build.yml
