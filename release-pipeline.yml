@@ -12,6 +12,11 @@ parameters:
     type: boolean
     default: false
 
+  - name: publish_to_m1_container
+    displayName: 'Publish To M1 Container'
+    type: boolean
+    default: false
+
   - name: post_release
     displayName: 'Post Release on Github'
     type: boolean
@@ -56,19 +61,98 @@ stages:
 
         variables:
           - group: AZCOPY_TESTS_VAR
+          - name: work_dir
+            value: '$(Build.SourcesDirectory)'
+          - name: archives
+            value: $(root_dir)/archives
 
         steps:
-          - checkout: none
-
           - template: setup/trigger_m1_build.yml
-            # parameters:
-            #   github_token: $(GITHUB_TOKEN)
-        
+
           - task: PublishBuildArtifacts@1
             inputs:
               artifactName: 'azCopy'
             displayName: 'Publish Artifacts'
             condition: succeededOrFailed()
+
+          - task: GoTool@0
+            env:
+              GO111MODULE: 'on'
+            inputs:
+              version: $(AZCOPY_GOLANG_VERSION)
+
+          - script: |
+              echo 'Running GO Vet'
+              go vet 
+            displayName: 'Golang Vet - Mac'
+            workingDirectory: $(System.DefaultWorkingDirectory)
+
+          - script: |
+              CGO_ENABLED=1 go build -o "$(root_dir)/azcopy"
+            displayName: 'Generate build'
+
+          - template: setup/azcopy_version_check_linux.yml
+            parameters:
+              azcopy_executable: $(root_dir)/azcopy
+
+          - script: |
+              mkdir -p $(archives)
+              darwin_arm64_m1_dir="$(work_dir)/azcopy_darwin_m1_arm64_$(azcopy_version)"
+              mkdir -p $(darwin_arm64_m1_dir)
+              cp NOTICE.txt $(darwin_arm64_m1_dir)
+              mv $(Build.ArtifactStagingDirectory)/azcopy_darwin_m1_arm64  $(darwin_arm64_m1_dir)/azcopy
+            displayName: 'Copy required files for packaging'
+
+          - task: ArchiveFiles@2
+            displayName: 'Archive MacOS AMD64 Build (must happen before signing/notarization)'
+            inputs:
+              rootFolderOrFile: '$(darwin_arm64_m1_dir)'
+              archiveFile: '$(archives)/azcopy_darwin_m1_arm64_$(azcopy_version).zip'
+            continueOnError: true
+
+          - script: |
+              cp $(archives)/azcopy_darwin* $(Build.ArtifactStagingDirectory)
+            displayName: 'Copy zip to staging directory'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              artifactName: 'azCopy-mac-temp'
+            displayName: 'Publish Artifacts'
+            condition: succeededOrFailed()
+
+          - task: DownloadBuildArtifacts@0
+            displayName: 'Download Binaries Build Artifacts'
+            inputs:
+              artifactName: 'azCopy-binaries'
+              downloadPath: $(Build.ArtifactStagingDirectory)
+
+          - task: Bash@3
+            displayName: 'Install Azure CLI'
+            inputs:
+              targetType: 'inline'
+              script: |
+                curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+          - task: AzureCLI@2
+            displayName: 'Azure CLI'
+            inputs:
+              azureSubscription: 'ESRP KeyVault identity'
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                # Find the current version
+                raw_version_output=$($(root_dir)/azcopy --version)
+                azcopy_version=$(echo $raw_version_output | awk '{print $3}')
+
+                today=$(date +"%Y%m%d")
+                
+                executable_name=$(root_dir)/azcopy
+
+                if [ $(Publish_To_M1_Container) = "True" ]; then
+                  #TODO: change the container name
+                  m1_container_url="https://azcopyprivatedrops.blob.core.windows.net/m1drop/azcopy-$azcopy_version-$today"
+                  AZCOPY_AUTO_LOGIN_TYPE=AzCLI $executable_name cp "$(Build.ArtifactStagingDirectory)/azCopy-binaries/azcopy_darwin_m1_arm64" "$m1_container_url" --put-md5=true
+                fi
         
           - task: ComponentGovernanceComponentDetection@0
             inputs:
@@ -1581,6 +1665,8 @@ stages:
             value: 'azcopyvnextrelease'
           - name: Publish_To_Container
             value: ${{ parameters.publish_to_container }}
+          - name: Publish_To_M1_Container
+            value: ${{ parameters.publish_to_m1_container }}
           - name: work_dir
             value: '$(Build.SourcesDirectory)'
 
@@ -1671,6 +1757,10 @@ stages:
                 AZCOPY_AUTO_LOGIN_TYPE=AzCLI $executable_name cp "$(Build.ArtifactStagingDirectory)/azCopy-mac-signed/*" "$container_url" --recursive --put-md5=true
                 AZCOPY_AUTO_LOGIN_TYPE=AzCLI $executable_name cp "$(Build.ArtifactStagingDirectory)/*.zip" "$container_url" --put-md5=true
 
+                if [ $(Publish_To_M1_Container) = "True" ]; then
+                  m1_container_url="https://$(Release_Account_Name).blob.core.windows.net/azcopy-m1-drops/azcopy-$azcopy_version-$today"
+                  AZCOPY_AUTO_LOGIN_TYPE=AzCLI $executable_name cp "$(Build.ArtifactStagingDirectory)/azCopy-binaries/azcopy_darwin_m1_arm64" "$m1_container_url" --put-md5=true
+                fi
   - ${{ if eq(parameters.post_release, true) }}:
     - stage: ReleaseArtifacts
       dependsOn: TestArtifacts
