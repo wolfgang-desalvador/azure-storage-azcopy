@@ -184,8 +184,9 @@ stages:
                   #   echo "No artifacts found for the specified workflow run."
                   #   exit 1
                   # fi
-                  cp $ARTIFACTS_DIR/* $(Build.ArtifactStagingDirectory)
-                  echo "Artifact downloaded successfully."
+                    cp $ARTIFACTS_DIR/* $(Build.ArtifactStagingDirectory)
+                    echo "Artifact downloaded successfully."
+                  fi
                 }
 
                 # Poll the workflow status until it completes
