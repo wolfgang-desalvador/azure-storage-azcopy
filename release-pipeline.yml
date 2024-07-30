@@ -165,8 +165,16 @@ stages:
                     
                     curl -L -o "$ARTIFACTS_DIR/$artifact_name.zip" -H "Authorization: Bearer $GIT_TOKEN" "$artifact_url"
                     ls -ltR $ARTIFACTS_DIR/
-                    if file "$ARTIFACTS_DIR/$artifact_name.zip" | grep -q 'Zip archive data'; then
-                      echo "Valid zip"
+                    
+                    # Verify if the downloaded file is a valid ZIP file
+                    file_type=$(file "$ARTIFACTS_DIR/$artifact_name.zip")
+
+                    if echo "$file_type" | grep -q 'Zip archive data'; then
+                      echo "The file is a valid ZIP archive."
+                      # Proceed with extraction
+                    else
+                      echo "The file is not a valid ZIP archive: $file_type"
+                      exit 1
                     fi
 
                     if [ $? -eq 0 ]; then
