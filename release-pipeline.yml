@@ -164,28 +164,25 @@ stages:
                     echo "Downloading artifact: $artifact_name"
                     
                     curl -L -o "$ARTIFACTS_DIR/$artifact_name.zip" -H "Authorization: Bearer $GIT_TOKEN" "$artifact_url"
-                  #   ls -ltR $ARTIFACTS_DIR/
-                  #   if file "$ARTIFACTS_DIR/$artifact_name.zip" | grep -q 'Zip archive data'; then
-                  #     echo "Valid zip"
-                  #   fi
+                    ls -ltR $ARTIFACTS_DIR/
+                    if file "$ARTIFACTS_DIR/$artifact_name.zip" | grep -q 'Zip archive data'; then
+                      echo "Valid zip"
+                    fi
 
-                  #   if [ $? -eq 0 ]; then
-                  #     echo "Successfully downloaded $artifact_name to $ARTIFACTS_DIR"
-                  #     # Extract the artifact
-                  #     mkdir -p $ARTIFACTS_DIR/unzipped_artifacts
-                  #     ls -ltR $ARTIFACTS_DIR/
-                  #     unzip -o $ARTIFACTS_DIR/$artifact_name -d "$ARTIFACTS_DIR/unzipped_artifacts"
-                  #     cp $ARTIFACTS_DIR/$artifact_name/* $(Build.ArtifactStagingDirectory)
-                  #   else
-                  #     echo "Failed to download $artifact_name"
-                  #     exit 1
-                  #   fi
-                  # else
-                  #   echo "No artifacts found for the specified workflow run."
-                  #   exit 1
-                  # fi
-                    cp $ARTIFACTS_DIR/* $(Build.ArtifactStagingDirectory)
-                    echo "Artifact downloaded successfully."
+                    if [ $? -eq 0 ]; then
+                      echo "Successfully downloaded $artifact_name to $ARTIFACTS_DIR"
+                      # Extract the artifact
+                      mkdir -p $ARTIFACTS_DIR/unzipped_artifacts
+                      ls -ltR $ARTIFACTS_DIR/
+                      unzip -o $ARTIFACTS_DIR/artifact_name* -d "$ARTIFACTS_DIR/unzipped_artifacts"
+                      cp $ARTIFACTS_DIR/unzipped_artifacts/$artifact_name/* $(Build.ArtifactStagingDirectory)
+                    else
+                      echo "Failed to download $artifact_name"
+                      exit 1
+                    fi
+                  else
+                    echo "No artifacts found for the specified workflow run."
+                    exit 1
                   fi
                 }
 
