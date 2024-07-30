@@ -174,7 +174,7 @@ stages:
                       # Extract the artifact
                       mkdir -p $ARTIFACTS_DIR/unzipped_artifacts
                       ls -ltR $ARTIFACTS_DIR/
-                      unzip -o $ARTIFACTS_DIR/artifact_name* -d "$ARTIFACTS_DIR/unzipped_artifacts"
+                      unzip -o $ARTIFACTS_DIR/$artifact_name* -d "$ARTIFACTS_DIR/unzipped_artifacts"
                       cp $ARTIFACTS_DIR/unzipped_artifacts/$artifact_name/* $(Build.ArtifactStagingDirectory)
                     else
                       echo "Failed to download $artifact_name"
