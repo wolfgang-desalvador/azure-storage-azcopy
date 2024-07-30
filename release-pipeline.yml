@@ -178,12 +178,15 @@ stages:
                     fi
                   done
 
-                  # Poll the workflow status until it completes
-                  while true; do
-                    check_status
-                    echo "Workflow run is still in progress. Checking again in $POLL_INTERVAL seconds..."
-                    sleep $POLL_INTERVAL
-                  done
+                  echo "All artifacts downloaded successfully."
+                }
+
+                # Poll the workflow status until it completes
+                while true; do
+                  check_status
+                  echo "Workflow run is still in progress. Checking again in $POLL_INTERVAL seconds..."
+                  sleep $POLL_INTERVAL
+                done
 
             displayName: 'Trigger GitHub Actions workflow'
 
