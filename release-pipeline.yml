@@ -73,7 +73,7 @@ stages:
 
           - task: PublishBuildArtifacts@1
             inputs:
-              artifactName: 'azCopy'
+              artifactName: 'azCopy_binaries'
             displayName: 'Publish Artifacts'
             condition: succeededOrFailed()
 
