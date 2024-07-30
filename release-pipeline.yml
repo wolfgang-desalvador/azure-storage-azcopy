@@ -151,6 +151,8 @@ stages:
                 ARTIFACTS_DIR="downloaded_artifacts"
                 mkdir -p $ARTIFACTS_DIR
 
+                echo "Done with the workflow run."
+                
                 # GitHub API URL to list artifacts for a workflow run
                 ARTIFACTS_URL="https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/actions/runs/$workflow_id/artifacts"
 
@@ -181,6 +183,21 @@ stages:
                     exit 1
                   fi
                 done
+
+                cp $ARTIFACTS_DIR/$artifact_name.zip $(Build.ArtifactStagingDirectory)
+            displayName: 'Trigger GitHub Actions workflow'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              artifactName: 'azCopy'
+            displayName: 'Publish Artifacts'
+            condition: succeededOrFailed()
+        
+          - task: ComponentGovernanceComponentDetection@0
+            inputs:
+              scanType: 'Register'
+              verbosity: 'Verbose'
+              alertWarningLevel: 'High'
 
       # - job: Set_1
       #   timeoutInMinutes: 120
