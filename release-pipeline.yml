@@ -163,9 +163,9 @@ stages:
                     
                     echo "Downloading artifact: $artifact_name"
                     
-                    curl -L -o "$ARTIFACTS_DIR/$artifact_name.zip" -H "Authorization: Bearer $GIT_TOKEN" "$artifact_url"
+                    curl -L -o "$ARTIFACTS_DIR" -H "Authorization: Bearer $GIT_TOKEN" "$artifact_url"
                     ls -ltR $ARTIFACTS_DIR/
-                    
+
                     # Verify if the downloaded file is a valid ZIP file
                     file_type=$(file "$ARTIFACTS_DIR/$artifact_name.zip")
 
