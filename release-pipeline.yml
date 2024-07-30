@@ -72,6 +72,7 @@ stages:
                 if [ -z "$GITHUB_OWNER" ] || [ -z "$GITHUB_REPO" ] || [ -z "$GITHUB_WORKFLOW_FILE" ] || [ -z "$GITHUB_REF" ] || [ -z "$GIT_TOKEN" ]; then
                   echo "One or more required environment variables are missing."
                   echo "Please set GITHUB_OWNER, GITHUB_REPO, GITHUB_WORKFLOW_FILE, GITHUB_REF, and GIT_TOKEN."
+                fi
 
                 GITHUB_API_URL="https://api.github.com/repos/$GITHUB_OWNER/$GITHUB_REPO/actions/workflows/$GITHUB_WORKFLOW_FILE/dispatches"
                 
