@@ -163,7 +163,7 @@ stages:
                     
                     echo "Downloading artifact: $artifact_name"
                     
-                    download_response=curl -s -w "%{http_code}" -L -o "$ARTIFACTS_DIR/$artifact_name.zip" -H "Authorization: Bearer $GIT_TOKEN" "$artifact_url"
+                    download_response=$(curl -s -w "%{http_code}" -L -o "$ARTIFACTS_DIR/$artifact_name.zip" -H "Authorization: Bearer $GIT_TOKEN" "$artifact_url")
                     echo "download response: $download_response"
                     ls -ltR $ARTIFACTS_DIR/
 
