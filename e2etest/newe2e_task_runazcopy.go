@@ -295,7 +295,7 @@ func RunAzCopy(a ScenarioAsserter, commandSpec AzCopyCommand) (AzCopyStdout, *Az
 		}
 	}
 	command := exec.Cmd{
-		Path: GlobalConfig.AzCopyExecutableConfig.ExecutablePath,
+		Path: "C:\\Users\\dphulkar\\azure-storage-azcopy\\azure-storage-azcopy.exe", //GlobalConfig.AzCopyExecutableConfig.ExecutablePath,
 		Args: args,
 		Env:  env,
 

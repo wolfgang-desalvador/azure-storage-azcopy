@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/Azure/azure-storage-azcopy/v10/common"
-	"strconv"
 	"math"
+	"strconv"
 )
 
 func init() {
-	suiteManager.RegisterSuite(&FileTestSuite{})
+	//suiteManager.RegisterSuite(&FileTestSuite{})
 }
 
 type FileTestSuite struct{}

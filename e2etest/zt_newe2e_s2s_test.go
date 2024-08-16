@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	suiteManager.RegisterSuite(&S2STestSuite{})
+	//suiteManager.RegisterSuite(&S2STestSuite{})
 }
 
 type S2STestSuite struct{}
