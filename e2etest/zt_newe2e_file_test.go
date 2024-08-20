@@ -3,13 +3,15 @@ package e2etest
 import (
 	"context"
 	"fmt"
-	"github.com/Azure/azure-storage-azcopy/v10/common"
+
 	"math"
 	"strconv"
+
+	"github.com/Azure/azure-storage-azcopy/v10/common"
 )
 
 func init() {
-	//suiteManager.RegisterSuite(&FileTestSuite{})
+	suiteManager.RegisterSuite(&FileTestSuite{})
 }
 
 type FileTestSuite struct{}
