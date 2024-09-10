@@ -13,11 +13,16 @@ steps:
     inlineScript: |
       Install-Module -Name Az.Accounts -Force -AllowClobber
       Import-Module Az.Accounts
+      Update-Module Az.*
       $PSVersionTable.PSVersion
+  
+- script:
+    echo "Hello World" > $(Build.SourcesDirectory)/filename.txt
+  displayName: 'Create file
 
 - task: AzureFileCopy@6
   inputs:
-    SourcePath: '$(Build.SourcesDirectory)'
+    SourcePath: '$(Build.SourcesDirectory)/filename.txt'
     azureSubscription: 'azcopyTestScenarios'
     Destination: 'AzureBlob'
     storage: 'dpazcopy1'
