@@ -24,5 +24,8 @@ CentOS-8.0,azcopyAmdRpm,microsoft-centos8-prod-yum,
 SUSE-15Gen2,azcopyAmdRpm,microsoft-sles15-prod-yum,
 Rocky-8.0,azcopyAmdRpm,microsoft-el8-prod-yum,
 Rocky-9.0,azcopyAmdRpm,microsoft-el9-prod-yum,
+<<<<<<< HEAD
 Mariner-3.0-x86_64,marinerAmdRpm,azurelinux-3.0-prod-ms-oss-x86_64-yum,
 Mariner-3.0-aarch64,marinerAarchRpm,azurelinux-3.0-prod-ms-oss-aarch64-yum,
+=======
+>>>>>>> 87e7540084dab76daae8f08f2e46200df8e3bd35
