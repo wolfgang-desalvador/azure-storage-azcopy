@@ -1,0 +1,24 @@
+# Do not trigger this pipeline automatically
+trigger: none
+pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    scriptType: 'ps'
+    inlineScript: |
+      Install-Module -Name Az.Accounts -Force -AllowClobber
+      Import-Module Az.Accounts
+      $PSVersionTable.PSVersion
+
+- task: AzureFileCopy@6
+  inputs:
+    SourcePath: '$(Build.SourcesDirectory)'
+    azureSubscription: 'azcopyTestScenarios'
+    Destination: 'AzureBlob'
+    storage: 'dpazcopy1'
+    ContainerName: 'icm-test'
