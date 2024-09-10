@@ -6,27 +6,38 @@ pool:
   vmImage: 'windows-latest'
 
 steps:
-- task: PowerShell@2
-  inputs:
-    targetType: 'inline'
-    scriptType: 'ps'
-    inlineScript: |
-      Install-Module -Name Az.Accounts -Force -AllowClobber
-      Import-Module Az.Accounts
-      Update-Module Az.*
-      $PSVersionTable.PSVersion
-  
-- script:
-    echo "Hello World" > $(Build.SourcesDirectory)/filename.txt
-  displayName: 'Create file'
+# - task: PowerShell@2
+#   inputs:
+#     targetType: 'inline'
+#     scriptType: 'ps'
+#     inlineScript: |
+#       Install-Module -Name Az.Accounts -Force -AllowClobber
+#       Import-Module Az.Accounts
+#       Update-Module Az.*
+#       $PSVersionTable.PSVersion
+  - checkout: none
 
-- task: AzureFileCopy@6
-  inputs:
-    SourcePath: '$(Build.SourcesDirectory)'
-    azureSubscription: 'azcopyTestScenarios'
-    Destination: 'AzureBlob'
-    storage: 'dpazcopy1'
-    ContainerName: 'icm-test'
+  - task: PowerShell@2
+    displayName: 'Install Correct version of Az.Accounts'
+    retryCountOnTaskFailure: 3
+    inputs:
+      targetType: 'inline'
+      script: |
+        Install-Module -Name Az.Accounts -RequiredVersion 3.0.3 -Verbose -Force -AllowClobber
+        Uninstall-AzureRm -Verbose
+        Get-InstalledModule Az.Accounts -AllVersions
+  
+  - script:
+      echo "Hello World" > $(Build.SourcesDirectory)/filename.txt
+    displayName: 'Create file'
+
+  - task: AzureFileCopy@6
+    inputs:
+      SourcePath: '$(Build.SourcesDirectory)'
+      azureSubscription: 'azcopyTestScenarios'
+      Destination: 'AzureBlob'
+      storage: 'dpazcopy1'
+      ContainerName: 'icm-test'
 
 
 # variables:
