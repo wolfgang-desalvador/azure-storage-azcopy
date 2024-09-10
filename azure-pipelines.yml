@@ -18,7 +18,7 @@ steps:
   
 - script:
     echo "Hello World" > $(Build.SourcesDirectory)/filename.txt
-  displayName: 'Create file
+  displayName: 'Create file'
 
 - task: AzureFileCopy@6
   inputs:
