@@ -22,9 +22,21 @@ jobs:
         inputs:
           targetType: 'inline'
           script: |
-            # Install Az.Accounts module using PowerShell
-            Install-Module -Name Az.Accounts -Scope CurrentUser -Repository PSGallery -AllowClobber -Force
-          displayName: 'Install PowerShell Az Module'
+            # Ensure NuGet provider is installed and updated
+            Install-PackageProvider -Name NuGet -Force -Confirm:$false
+
+            # Update PowerShellGet module
+            Install-Module -Name PowerShellGet -Force -AllowClobber
+
+            # Set execution policy to allow script execution
+            Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope Process -Force
+
+            # Install Az.Accounts module
+            Install-Module -Name Az.Accounts -Scope CurrentUser -Repository PSGallery -AllowClobber -Force -Verbose
+
+            # Verify installation
+            Get-InstalledModule -Name Az.Accounts -AllVersions
+        displayName: 'Install PowerShell Az Module'
 
       # - task: PowerShell@2
       #   displayName: 'Install Correct version of Az.Accounts'
