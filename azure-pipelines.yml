@@ -56,7 +56,7 @@ jobs:
       - task: AzureFileCopy@6
         inputs:
           SourcePath: '$(Build.SourcesDirectory)'
-          azureSubscription: 'azcopyTestScenarios'
+          azureSubscription: 'spn-icm'
           Destination: 'AzureBlob'
           storage: 'dpazcopy1'
           ContainerName: 'icm-test'
