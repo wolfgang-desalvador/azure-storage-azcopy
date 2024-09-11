@@ -21,14 +21,14 @@ jobs:
       - task: PowerShell@2
         displayName: 'Install Correct version of Az.Accounts'
         retryCountOnTaskFailure: 3
+        failOnStderr: true  # Ensure errors are captured
         inputs:
           targetType: 'inline'
           script: |
             Install-Module -Name Az.Accounts -RequiredVersion 3.0.3 -Verbose -Force -AllowClobber
             Uninstall-AzureRm -Verbose
             Get-InstalledModule Az.Accounts -AllVersions
-        failOnStderr: true  # Ensure errors are captured
-      
+        
       - script:
           echo "Hello World" > $(Build.SourcesDirectory)/filename.txt
         displayName: 'Create file'
