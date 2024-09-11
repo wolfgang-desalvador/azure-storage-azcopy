@@ -9,7 +9,7 @@ jobs:
       matrix:
         Windows:
           vmImage: 'windows-19'
-          AgentName: "azcopy-windows-19"
+          AgentName: "azcopy-windows-19-vNext"
     pool:
       name: "azcopy-windows-pool"
       demands:
