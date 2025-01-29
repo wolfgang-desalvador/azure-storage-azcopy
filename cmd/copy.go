@@ -228,8 +228,8 @@ func blockSizeInBytes(rawBlockSizeInMiB float64) (int64, error) {
 
 // returns result of stripping and if striptopdir is enabled
 // if nothing happens, the original source is returned
-func (raw rawCopyCmdArgs) stripTrailingWildcardOnRemoteSource(location common.Location) (result string, stripTopDir bool, err error) {
-	result = raw.src
+func stripTrailingWildcardOnRemoteSource(src string, location common.Location) (result string, stripTopDir bool, err error) {
+	result = src
 	resourceURL, err := url.Parse(result)
 	gURLParts := common.NewGenericResourceURLParts(*resourceURL, location)
 
@@ -267,10 +267,37 @@ func (raw rawCopyCmdArgs) stripTrailingWildcardOnRemoteSource(location common.Lo
 	return
 }
 
-func (raw rawCopyCmdArgs) cook() (CookedCopyCmdArgs, error) {
-	cooked := CookedCopyCmdArgs{
-		jobID: azcopyCurrentJobID,
+func (raw rawCopyCmdArgs) convert() (CookedCopyCmdArgs, error) {
+	cca := CookedCopyCmdArgs{
+		Src: raw.src,
+		Dst: raw.dst,
 	}
+	err := cca.FromTo.Parse(raw.fromTo)
+	if err != nil {
+		return cca, fmt.Errorf("invalid --from-to value specified: %q. "+fromToHelpText, raw.fromTo)
+	}
+
+	if raw.internalOverrideStripTopDir {
+		cca.StripTopDir = true
+	}
+	cca.Recursive = raw.recursive
+	cca.ForceIfReadOnly = raw.forceIfReadOnly
+}
+
+func (cooked *CookedCopyCmdArgs) validate() error {
+	var err error
+	cooked.FromTo, err = ValidateFromTo2(cooked.Src, cooked.Dst, cooked.FromTo) // TODO: src/dst
+	if err != nil {
+		return err
+	}
+	if err = validateForceIfReadOnly(cooked.ForceIfReadOnly, cooked.FromTo); err != nil {
+		return err
+	}
+}
+
+func (cooked *CookedCopyCmdArgs) process2() error {
+	var err error
+	cooked.jobID = azcopyCurrentJobID
 
 	// set up the front end scanning logger
 	azcopyScanningLogger = common.NewJobLogger(azcopyCurrentJobID, azcopyLogVerbosity, azcopyLogPathFolder, "-scanning")
@@ -284,52 +311,34 @@ func (raw rawCopyCmdArgs) cook() (CookedCopyCmdArgs, error) {
 		azcopyLogPathFolder = ""
 	}
 
-	fromTo, err := ValidateFromTo(raw.src, raw.dst, raw.fromTo) // TODO: src/dst
-	if err != nil {
-		return cooked, err
+	tempSrc := cooked.Src
+	tempDst := cooked.Dst
+	if strings.EqualFold(tempDst, common.Dev_Null) && runtime.GOOS == "windows" {
+		tempDst = common.Dev_Null // map all capitalization of "NUL"/"nul" to one because (on Windows) they all mean the same thing
 	}
-
-	var tempSrc string
-	tempDest := raw.dst
-
-	if strings.EqualFold(tempDest, common.Dev_Null) && runtime.GOOS == "windows" {
-		tempDest = common.Dev_Null // map all capitalization of "NUL"/"nul" to one because (on Windows) they all mean the same thing
-	}
-
 	// Check if source has a trailing wildcard on a URL
-	if fromTo.From().IsRemote() {
-		tempSrc, cooked.StripTopDir, err = raw.stripTrailingWildcardOnRemoteSource(fromTo.From())
-
+	if cooked.FromTo.From().IsRemote() {
+		tempSrc, cooked.StripTopDir, err = stripTrailingWildcardOnRemoteSource(cooked.Src, cooked.FromTo.From())
 		if err != nil {
-			return cooked, err
+			return err
 		}
-	} else {
-		tempSrc = raw.src
 	}
-	if raw.internalOverrideStripTopDir {
-		cooked.StripTopDir = true
-	}
-
 	// Strip the SAS from the source and destination whenever there is SAS exists in URL.
 	// Note: SAS could exists in source of S2S copy, even if the credential type is OAuth for destination.
 
-	cooked.Source, err = SplitResourceString(tempSrc, fromTo.From())
+	cooked.Source, err = SplitResourceString(tempSrc, cooked.FromTo.From())
 	if err != nil {
-		return cooked, err
+		return err
 	}
 
-	cooked.Destination, err = SplitResourceString(tempDest, fromTo.To())
+	cooked.Destination, err = SplitResourceString(tempDst, cooked.FromTo.To())
 	if err != nil {
-		return cooked, err
+		return err
 	}
+}
 
-	cooked.FromTo = fromTo
-	cooked.Recursive = raw.recursive
-	cooked.ForceIfReadOnly = raw.forceIfReadOnly
-	if err = validateForceIfReadOnly(cooked.ForceIfReadOnly, cooked.FromTo); err != nil {
-		return cooked, err
-	}
-
+func (raw rawCopyCmdArgs) cook() (CookedCopyCmdArgs, error) {
+	
 	if err = cooked.SymlinkHandling.Determine(raw.followSymlinks, raw.preserveSymlinks); err != nil {
 		return cooked, err
 	}
@@ -1105,6 +1114,8 @@ func validateMetadataString(metadata string) error {
 // represents the processed copy command input from the user
 type CookedCopyCmdArgs struct {
 	// from arguments
+	Src         string
+	Dst         string
 	Source      common.ResourceString
 	Destination common.ResourceString
 	FromTo      common.FromTo

@@ -1,11 +1,15 @@
 package client
 
 import (
+	"github.com/Azure/azure-storage-azcopy/v10/cmd"
 	"github.com/Azure/azure-storage-azcopy/v10/common"
 	"time"
 )
 
 type CopyOptions struct {
+	src string
+	dst string
+
 	FollowSymlinks                   bool
 	IncludeBefore                    *time.Time
 	IncludeAfter                     *time.Time
@@ -66,6 +70,18 @@ type CopyOptions struct {
 	deleteDestinationFileIfNecessary bool
 }
 
+func (options CopyOptions) convert() (cmd.CookedCopyCmdArgs, error) {
+	cca := cmd.CookedCopyCmdArgs{
+		Src:             options.src,
+		Dst:             options.dst,
+		FromTo:          options.FromTo,
+		Recursive:       options.Recursive,
+		ForceIfReadOnly: options.ForceIfReadOnly,
+	}
+}
+
 func (cc Client) Copy(source string, destination string, options CopyOptions) error {
+	options.src = source
+	options.dst = destination
 	return nil
 }
