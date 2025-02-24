@@ -25,7 +25,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity/cache"
 	"net"
 	"net/http"
 	"net/url"
@@ -36,11 +35,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity/cache"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/cloud"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/go-autorest/autorest/date"
 
 	// importing the cache module registers the cache implementation for the current platform
 	_ "github.com/Azure/azure-sdk-for-go/sdk/azidentity/cache"
@@ -414,7 +414,8 @@ func (t Token) Expires() time.Time {
 		s = -3600
 	}
 
-	expiration := date.NewUnixTimeFromSeconds(s)
+	// Use time.Unix to convert the Unix timestamp (in seconds) to a time.Time object
+	expiration := time.Unix(int64(s), 0)
 
 	return time.Time(expiration).UTC()
 }
@@ -473,7 +474,7 @@ func (credInfo *OAuthTokenInfo) Refresh(ctx context.Context) (*Token, error) {
 	}
 	return &Token{
 		AccessToken: t.Token,
-		ExpiresOn:   json.Number(strconv.FormatInt(int64(t.ExpiresOn.Sub(date.UnixEpoch())/time.Second), 10)),
+		ExpiresOn:   json.Number(strconv.FormatInt(int64(t.ExpiresOn.Sub(time.Unix(0, 0))/time.Second), 10)),
 	}, nil
 }
 
