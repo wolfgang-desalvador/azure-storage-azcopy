@@ -203,14 +203,15 @@ func (u *azureFileSenderBase) Prologue(state common.PrologueState) (destinationM
 	}
 
 	if info.PreserveNFSPermissions {
-		stage, err = u.addNFSPermissionsToHeaders(info, u.getFileClient().URL())
+		stage, err := u.addNFSPermissionsToHeaders(info, u.getFileClient().URL())
 		if err != nil {
 			jptm.FailActiveSend(stage, err)
 			return
 		}
+		createOptions.OwnerID = &u.nfsPermissionsToApply.OwnerID
 	}
 
-	stage, err = u.addSMBPropertiesToHeaders(info)
+	stage, err := u.addSMBPropertiesToHeaders(info)
 	if err != nil {
 		jptm.FailActiveSend(stage, err)
 		return
@@ -228,7 +229,7 @@ func (u *azureFileSenderBase) Prologue(state common.PrologueState) (destinationM
 		creationProperties.Attributes.ReadOnly = false
 	}
 
-	err = common.DoWithOverrideReadOnlyOnAzureFiles(u.ctx,
+	err := common.DoWithOverrideReadOnlyOnAzureFiles(u.ctx,
 		func() (interface{}, error) {
 			return u.getFileClient().Create(u.ctx, info.SourceSize, &file.CreateOptions{HTTPHeaders: &u.headersToApply, Permissions: &u.permissionsToApply, SMBProperties: &creationProperties, Metadata: u.metadataToApply})
 		},
