@@ -209,6 +209,8 @@ func (u *azureFileSenderBase) Prologue(state common.PrologueState) (destinationM
 			return
 		}
 		createOptions.OwnerID = &u.nfsPermissionsToApply.OwnerID
+		createOptions.GroupID = &u.nfsPermissionsToApply.GroupID
+		createOptions.FileMode = &u.nfsPermissionsToApply.FileMode
 	}
 
 	stage, err := u.addSMBPropertiesToHeaders(info)
@@ -229,9 +231,9 @@ func (u *azureFileSenderBase) Prologue(state common.PrologueState) (destinationM
 		creationProperties.Attributes.ReadOnly = false
 	}
 
-	err := common.DoWithOverrideReadOnlyOnAzureFiles(u.ctx,
+	err = common.DoWithOverrideReadOnlyOnAzureFiles(u.ctx,
 		func() (interface{}, error) {
-			return u.getFileClient().Create(u.ctx, info.SourceSize, &file.CreateOptions{HTTPHeaders: &u.headersToApply, Permissions: &u.permissionsToApply, SMBProperties: &creationProperties, Metadata: u.metadataToApply})
+			return u.getFileClient().Create(u.ctx, info.SourceSize, createOptions)
 		},
 		u.fileOrDirClient,
 		u.jptm.GetForceIfReadOnly())
@@ -244,25 +246,21 @@ func (u *azureFileSenderBase) Prologue(state common.PrologueState) (destinationM
 			u.jptm.FailActiveUpload("Creating parent directory", err)
 		}
 
+		if creationProperties.Attributes != nil {
+			createOptions.SMBProperties = &creationProperties
+		}
 		// retrying file creation
 		err = common.DoWithOverrideReadOnlyOnAzureFiles(u.ctx,
 			func() (interface{}, error) {
-				return u.getFileClient().Create(u.ctx, info.SourceSize, &file.CreateOptions{
-					HTTPHeaders:   &u.headersToApply,
-					SMBProperties: &creationProperties,
-					Permissions:   &u.permissionsToApply,
-					Metadata:      u.metadataToApply,
-				})
+				return u.getFileClient().Create(u.ctx, info.SourceSize, createOptions)
 			},
 			u.fileOrDirClient,
 			u.jptm.GetForceIfReadOnly())
 	}
-
 	if err != nil {
 		jptm.FailActiveUpload("Creating file", err)
 		return
 	}
-
 	return
 }
 
