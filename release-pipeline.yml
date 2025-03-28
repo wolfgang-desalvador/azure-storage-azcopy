@@ -51,7 +51,6 @@ parameters:
     displayName: 'Remove Linux Packages'
     type: string
     default: ''
-    required: false
 
 # Do not trigger this pipeline automatically
 trigger: none
