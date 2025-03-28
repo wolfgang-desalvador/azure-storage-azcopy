@@ -264,19 +264,22 @@ func (raw *rawSyncCmdArgs) cook() (cookedSyncCmdArgs, error) {
 	cooked.includeFileAttributes = parsePatterns(raw.includeFileAttributes)
 	cooked.excludeFileAttributes = parsePatterns(raw.excludeFileAttributes)
 
-	// TODO: the check on raw.preservePermissions on the next line can be removed once we have full support for these properties in sync
-	// if err = validatePreserveOwner(raw.preserveOwner, cooked.fromTo); raw.preservePermissions && err != nil {
-	//	return cooked, err
-	// }
-
 	if raw.isNFSCopy {
 		cooked.isNFSCopy, cooked.preserveInfo, cooked.preservePermissions, err = performNFSSpecificValidation(cooked.fromTo,
 			raw.isNFSCopy, raw.preserveInfo, raw.preservePermissions, raw.preserveSMBInfo, raw.preserveSMBPermissions)
 		if err != nil {
 			return cooked, err
 		}
-	} else if err = raw.performSMBSpecificValidation(&cooked); err != nil {
-		return cooked, err
+	} else {
+		cooked.isNFSCopy, cooked.preserveInfo, cooked.preservePOSIXProperties, cooked.preservePermissions, err = performSMBSpecificValidation(cooked.fromTo,
+			raw.isNFSCopy, raw.preserveInfo, raw.preservePOSIXProperties, raw.preservePermissions, raw.preserveOwner, raw.preserveSMBPermissions)
+		if err != nil {
+			return cooked, err
+		}
+		// TODO: the check on raw.preservePermissions on the next line can be removed once we have full support for these properties in sync
+		// if err = validatePreserveOwner(raw.preserveOwner, cooked.fromTo); raw.preservePermissions && err != nil {
+		//	return cooked, err
+		// }
 	}
 
 	if err = cooked.compareHash.Parse(raw.compareHash); err != nil {
@@ -372,6 +375,7 @@ func (raw *rawSyncCmdArgs) cook() (cookedSyncCmdArgs, error) {
 	return cooked, nil
 }
 
+<<<<<<< HEAD
 // performSMBSpecificValidation performs validation specific to SMB (Server Message Block) configurations
 // for a synchronization command. It checks SMB-related flags and settings, and ensures that necessary
 // properties are set correctly for SMB copy operations.
@@ -416,6 +420,8 @@ func (raw rawSyncCmdArgs) performSMBSpecificValidation(cooked *cookedSyncCmdArgs
 	return
 }
 
+=======
+>>>>>>> f1fe51570d8a301e1e8c20b9e86c21aec204e7f3
 type cookedSyncCmdArgs struct {
 	// NOTE: for the 64 bit atomic functions to work on a 32 bit system, we have to guarantee the right 64-bit alignment
 	// so the 64 bit integers are placed first in the struct to avoid future breaks
