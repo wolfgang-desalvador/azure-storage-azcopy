@@ -89,7 +89,7 @@ func remoteToLocal_file(jptm IJobPartTransferMgr, pacer pacer, df downloaderFact
 				shouldOverwrite = jptm.GetOverwritePrompter().ShouldOverwrite(info.Destination, common.EEntityType.File())
 			} else if jptm.GetOverwriteOption() == common.EOverwriteOption.IfSourceNewer() {
 				// only overwrite if source lmt is newer (after) the destination
-				if jptm.LastModifiedTime().After(dstProps.ModTime()) {
+				if jptm.POSIXLastModifiedTime().After(dstProps.ModTime()) {
 					shouldOverwrite = true
 				}
 			}

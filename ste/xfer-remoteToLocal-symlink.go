@@ -1,8 +1,9 @@
 package ste
 
 import (
-	"github.com/Azure/azure-storage-azcopy/v10/common"
 	"os"
+
+	"github.com/Azure/azure-storage-azcopy/v10/common"
 )
 
 func remoteToLocal_symlink(jptm IJobPartTransferMgr, pacer pacer, df downloaderFactory) {
@@ -30,7 +31,7 @@ func remoteToLocal_symlink(jptm IJobPartTransferMgr, pacer pacer, df downloaderF
 				shouldOverwrite = jptm.GetOverwritePrompter().ShouldOverwrite(info.Destination, common.EEntityType.File())
 			} else if jptm.GetOverwriteOption() == common.EOverwriteOption.IfSourceNewer() {
 				// only overwrite if source lmt is newer (after) the destination
-				if jptm.LastModifiedTime().After(dstProps.ModTime()) {
+				if jptm.POSIXLastModifiedTime().After(dstProps.ModTime()) {
 					shouldOverwrite = true
 				}
 			}
@@ -73,6 +74,12 @@ func remoteToLocal_symlink(jptm IJobPartTransferMgr, pacer pacer, df downloaderF
 		jptm.SetStatus(common.ETransferStatus.Failed())
 		jptm.ReportTransferDone()
 		return
+	}
+
+	err = common.CreateParentDirectoryIfNotExist(jptm.Info().Destination, jptm.GetFolderCreationTracker())
+
+	if err != nil {
+		jptm.FailActiveSend("creating destination folder for symlink", err)
 	}
 
 	err = dl.CreateSymlink(jptm)

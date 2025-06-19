@@ -24,6 +24,7 @@ import (
 	"context"
 	"crypto/md5"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
@@ -86,7 +87,13 @@ func (p *blobSourceInfoProvider) HasUNIXProperties() bool {
 	}
 
 	for _, v := range common.AllLinuxProperties {
-		_, ok := prop.SrcMetadata[v]
+		ok := false
+		for key := range prop.SrcMetadata {
+			if strings.EqualFold(key, v) {
+				ok = true
+				break
+			}
+		}
 		if ok {
 			return true
 		}

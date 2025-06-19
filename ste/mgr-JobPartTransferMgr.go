@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azfile/fileerror"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azfile/fileerror"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
@@ -23,6 +25,7 @@ type IJobPartTransferMgr interface {
 	Info() *TransferInfo
 	ResourceDstData(dataFileToXfer []byte) (headers common.ResourceHTTPHeaders, metadata common.Metadata, blobTags common.BlobTags, cpkOptions common.CpkOptions)
 	LastModifiedTime() time.Time
+	POSIXLastModifiedTime() time.Time
 	PreserveLastModifiedTime() (time.Time, bool)
 	ShouldPutMd5() bool
 	DeleteDestinationFileIfNecessary() bool
@@ -539,6 +542,22 @@ func (jptm *jobPartTransferMgr) ResourceDstData(dataFileToXfer []byte) (headers 
 // TODO refactor into something like jptm.IsLastModifiedTimeEqual() so that there is NO LastModifiedTime method and people therefore CAN'T do it wrong due to time zone
 func (jptm *jobPartTransferMgr) LastModifiedTime() time.Time {
 	return time.Unix(0, jptm.jobPartPlanTransfer.ModifiedTime)
+}
+
+func (jptm *jobPartTransferMgr) POSIXLastModifiedTime() time.Time {
+	var lastModifiedTime time.Time
+
+	if jptm.jobPartPlanTransfer.POSIXModifiedTime != nil {
+		timeStampString, err := strconv.ParseInt(*jptm.jobPartPlanTransfer.POSIXModifiedTime, 10, 64)
+		if err != nil {
+			fmt.Errorf("Error parsing Modtime from metadata: %v", err)
+		}
+		lastModifiedTime = time.UnixMicro(timeStampString / 1000)
+	} else {
+		lastModifiedTime = jptm.LastModifiedTime()
+	}
+
+	return lastModifiedTime
 }
 
 // PreserveLastModifiedTime checks for the PreserveLastModifiedTime flag in JobPartPlan of a transfer.
