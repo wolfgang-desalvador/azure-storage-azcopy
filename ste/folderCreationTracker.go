@@ -117,10 +117,10 @@ func (f *jpptFolderTracker) ShouldSetProperties(folder string, overwrite common.
 	}
 
 	switch overwrite {
-	case common.EOverwriteOption.True():
+	case common.EOverwriteOption.True(),
+		common.EOverwriteOption.IfSourceNewer():
 		return true
 	case common.EOverwriteOption.Prompt(),
-		common.EOverwriteOption.IfSourceNewer(),
 		common.EOverwriteOption.False():
 
 		f.mu.Lock()
