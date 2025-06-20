@@ -302,15 +302,12 @@ func (jpfn JobPartPlanFileName) Create(order common.CopyJobPartOrderRequest) {
 			panic(fmt.Sprintf("The length of tags %s exceeds maximum allowed length, and cannot be processed.", order.Transfers.List[t].BlobTags))
 		}
 
-		POSIXTime, _ := order.Transfers.List[t].Metadata["modtime"]
-
 		jppt := JobPartPlanTransfer{
 			SrcOffset:         currentSrcStringOffset, // SrcOffset of the src string
 			SrcLength:         int16(len(order.Transfers.List[t].Source)),
 			DstLength:         int16(len(order.Transfers.List[t].Destination)),
 			EntityType:        order.Transfers.List[t].EntityType,
 			ModifiedTime:      order.Transfers.List[t].LastModifiedTime.UnixNano(),
-			POSIXModifiedTime: POSIXTime,
 			SourceSize:        order.Transfers.List[t].SourceSize,
 			CompletionTime:    0,
 			// For S2S copy, per Transfer source's properties

@@ -546,14 +546,23 @@ func (jptm *jobPartTransferMgr) LastModifiedTime() time.Time {
 
 func (jptm *jobPartTransferMgr) POSIXLastModifiedTime() time.Time {
 	var lastModifiedTime time.Time
+	metadata := jptm.Info().SrcProperties.SrcMetadata
+	ok := false
 
-	if jptm.jobPartPlanTransfer.POSIXModifiedTime != nil {
-		timeStampString, err := strconv.ParseInt(*jptm.jobPartPlanTransfer.POSIXModifiedTime, 10, 64)
-		if err != nil {
-			fmt.Errorf("Error parsing Modtime from metadata: %v", err)
+	for key := range metadata {
+		if strings.EqualFold(key, common.POSIXModTimeMeta) {
+			timeStampString, err := strconv.ParseInt(*metadata[key], 10, 64)
+			if err != nil {
+				fmt.Errorf("Error parsing Modtime from metadata: %v", err)
+			} else {
+				lastModifiedTime = time.UnixMicro(timeStampString / 1000)
+				ok = true
+			}
+			break
 		}
-		lastModifiedTime = time.UnixMicro(timeStampString / 1000)
-	} else {
+	}
+
+	if !ok {
 		lastModifiedTime = jptm.LastModifiedTime()
 	}
 
