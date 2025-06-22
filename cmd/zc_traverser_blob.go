@@ -23,14 +23,15 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"strings"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/bloberror"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/service"
-	"net/url"
-	"strings"
-	"time"
 
 	"github.com/Azure/azure-storage-azcopy/v10/common/parallel"
 
@@ -509,6 +510,7 @@ func getEntityType(metadata map[string]*string) common.EntityType {
 
 func (t *blobTraverser) createStoredObjectForBlob(preprocessor objectMorpher, blobInfo *container.BlobItem, relativePath string, containerName string) StoredObject {
 	adapter := blobPropertiesAdapter{blobInfo.Properties}
+	itemAdapter := blobItemAdapter{blobInfo}
 
 	if azcopyScanningLogger != nil {
 		azcopyScanningLogger.Log(common.LogDebug, fmt.Sprintf("Blob %s entity type: %s", relativePath, getEntityType(blobInfo.Metadata)))
@@ -519,7 +521,7 @@ func (t *blobTraverser) createStoredObjectForBlob(preprocessor objectMorpher, bl
 		getObjectNameOnly(*blobInfo.Name),
 		relativePath,
 		getEntityType(blobInfo.Metadata),
-		adapter.LastModified(),
+		itemAdapter.LastModified(),
 		*adapter.BlobProperties.ContentLength,
 		adapter,
 		adapter, // adapter satisfies both interfaces
