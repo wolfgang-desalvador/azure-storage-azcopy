@@ -510,7 +510,6 @@ func getEntityType(metadata map[string]*string) common.EntityType {
 
 func (t *blobTraverser) createStoredObjectForBlob(preprocessor objectMorpher, blobInfo *container.BlobItem, relativePath string, containerName string) StoredObject {
 	adapter := blobPropertiesAdapter{blobInfo.Properties}
-	itemAdapter := blobItemAdapter{blobInfo}
 
 	if azcopyScanningLogger != nil {
 		azcopyScanningLogger.Log(common.LogDebug, fmt.Sprintf("Blob %s entity type: %s", relativePath, getEntityType(blobInfo.Metadata)))
@@ -521,7 +520,7 @@ func (t *blobTraverser) createStoredObjectForBlob(preprocessor objectMorpher, bl
 		getObjectNameOnly(*blobInfo.Name),
 		relativePath,
 		getEntityType(blobInfo.Metadata),
-		itemAdapter.LastModified(),
+		adapter.LastModified(),
 		*adapter.BlobProperties.ContentLength,
 		adapter,
 		adapter, // adapter satisfies both interfaces

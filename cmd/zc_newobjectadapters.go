@@ -21,9 +21,6 @@
 package cmd
 
 import (
-	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
@@ -104,30 +101,7 @@ type blobPropertiesResponseAdapter struct {
 }
 
 func (a blobPropertiesResponseAdapter) LastModified() time.Time {
-
-	var lastModifiedTime time.Time
-	metadata := a.GetPropertiesResponse.Metadata
-	ok := false
-
-	for key := range metadata {
-		if strings.EqualFold(key, common.POSIXModTimeMeta) {
-			timeStampString, err := strconv.ParseInt(*metadata[key], 10, 64)
-			if err != nil {
-				fmt.Errorf("Error parsing Modtime from metadata: %v", err)
-			} else {
-				lastModifiedTime = time.UnixMicro(timeStampString / 1000)
-				ok = true
-			}
-			break
-		}
-	}
-
-	if !ok {
-		return common.IffNotNil(a.GetPropertiesResponse.LastModified, time.Time{})
-	} else {
-		return lastModifiedTime
-	}
-
+	return common.IffNotNil(a.GetPropertiesResponse.LastModified, time.Time{})
 }
 
 func (a blobPropertiesResponseAdapter) CacheControl() string {
@@ -183,37 +157,6 @@ func (a blobPropertiesResponseAdapter) LeaseState() lease.StateType {
 // LeaseStatus returns the value for header x-ms-lease-status.
 func (a blobPropertiesResponseAdapter) LeaseStatus() lease.StatusType {
 	return common.IffNotNil(a.GetPropertiesResponse.LeaseStatus, "")
-}
-
-type blobItemAdapter struct {
-	*container.BlobItem
-}
-
-func (a blobItemAdapter) LastModified() time.Time {
-
-	var lastModifiedTime time.Time
-	metadata := a.Metadata
-	ok := false
-
-	for key := range metadata {
-		if strings.EqualFold(key, common.POSIXModTimeMeta) {
-			timeStampString, err := strconv.ParseInt(*metadata[key], 10, 64)
-			if err != nil {
-				fmt.Errorf("Error parsing Modtime from metadata: %v", err)
-			} else {
-				lastModifiedTime = time.UnixMicro(timeStampString / 1000)
-				ok = true
-			}
-			break
-		}
-	}
-
-	if !ok {
-		return common.IffNotNil(a.Properties.LastModified, time.Time{})
-	} else {
-		return lastModifiedTime
-	}
-
 }
 
 // blobPropertiesAdapter adapts a BlobProperties object to both the

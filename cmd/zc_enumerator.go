@@ -24,16 +24,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/bloberror"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azdatalake/datalakeerror"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azfile/fileerror"
 	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/bloberror"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azdatalake/datalakeerror"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azfile/fileerror"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/lease"
@@ -95,12 +97,38 @@ type StoredObject struct {
 	leaseDuration lease.DurationType
 }
 
+func (s *StoredObject) POSIXLastModifiedTime() time.Time {
+
+	var lastModifiedTime time.Time
+	metadata := s.Metadata
+	ok := false
+
+	for key := range metadata {
+		if strings.EqualFold(key, common.POSIXModTimeMeta) {
+			timeStampString, err := strconv.ParseInt(*metadata[key], 10, 64)
+			if err != nil {
+				fmt.Errorf("Error parsing Modtime from metadata: %v", err)
+			} else {
+				lastModifiedTime = time.UnixMicro(timeStampString / 1000)
+				ok = true
+			}
+			break
+		}
+	}
+
+	if !ok {
+		return s.lastModifiedTime
+	} else {
+		return lastModifiedTime
+	}
+}
+
 func (s *StoredObject) isMoreRecentThan(storedObject2 StoredObject, preferSMBTime bool) bool {
-	lmtA := s.lastModifiedTime
+	lmtA := s.POSIXLastModifiedTime()
 	if preferSMBTime && !s.smbLastModifiedTime.IsZero() {
 		lmtA = s.smbLastModifiedTime
 	}
-	lmtB := storedObject2.lastModifiedTime
+	lmtB := storedObject2.POSIXLastModifiedTime()
 	if preferSMBTime && !storedObject2.smbLastModifiedTime.IsZero() {
 		lmtB = storedObject2.smbLastModifiedTime
 	}
